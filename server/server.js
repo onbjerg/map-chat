@@ -34,3 +34,31 @@ app.use('/', express.static(__dirname + '/../client'))
 http.listen(3000, function () {
   console.log('listening on *:3000')
 })
+
+var stdin = process.openStdin()
+stdin.addListener('data', function (d) {
+  var input = d.toString().trim()
+  var cmd = input.split(' ')
+
+  if (cmd[0] === 'help') {
+    console.log('kick <user> - disconnect a user from the server')
+    console.log('help - display this page')
+    return
+  }
+
+  if (cmd.length < 2) {
+    console.error('too few arguments')
+    return
+  }
+
+  var socket
+  if ((socket = io.sockets.connected[cmd[1]]) === undefined) {
+    console.error('user ' + cmd[1] + ' does not exist')
+    return
+  }
+
+  if (cmd[0] === 'kick') {
+    console.log(socket.id + ' was kicked')
+    socket.disconnect()
+  }
+})

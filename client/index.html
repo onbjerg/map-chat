@@ -51,6 +51,7 @@
     var markers = []
 
     var socket = io()
+    var greeted = false
     socket.on('message', function (message) {
       if(markers[message.sessionID]) {
         var data = markers[message.sessionID]
@@ -96,9 +97,13 @@
         lng: position.coords.longitude
       }
 
-      socket.emit('greet', {
-        location: loc
-      })
+      if (!greeted) {
+        socket.emit('greet', {
+          location: loc
+        })
+
+        greeted = true
+      }
     }, function (err) {
       alert('We could not get your location :<')
       console.error('Error (' + err.code + '): ' + err.message)
@@ -107,6 +112,14 @@
       loc = {
         lat: position.coords.latitude,
         lng: position.coords.longitude
+      }
+
+      if (!greeted) {
+        socket.emit('greet', {
+          location: loc
+        })
+
+        greeted = true
       }
     }, function (err) {
       alert('We could not get your location :<')

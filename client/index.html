@@ -10,10 +10,27 @@
       margin: 0;
       height: 100%;
     }
+
+    #input {
+      position: absolute;
+      z-index: 9999;
+      bottom: 0;
+      width: 100%;
+      border-top: 2px solid #dadada;
+    }
+
+    #input > input {
+      width: 100%;
+      border: none;
+      padding: 20px;
+    }
     </style>
   </head>
   <body>
     <div id="map"></div>
+    <div id="input">
+      <input type="text" placeholder="Say something" id="message">
+    </div>
 
     <script src="https://maps.googleapis.com/maps/api/js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -96,11 +113,18 @@
       console.error('Error (' + err.code + '): ' + err.message)
     }, locationOptions)
 
-    function message (msg) {
-      socket.emit('message', {
-        message: msg,
-        location: loc
-      })
+    document.getElementById('message').onkeypress = function (e) {
+      if (!e) e = window.event
+      var keyCode = e.keyCode || e.which
+      if (keyCode == '13') {
+        socket.emit('message', {
+          message: this.value,
+          location: loc
+        })
+        this.value = ''
+
+        return false;
+      }
     }
     </script>
   </body>

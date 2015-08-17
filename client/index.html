@@ -1,39 +1,107 @@
 <!DOCTYPE html>
 <html>
-  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&language=en"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-  var loc
-  var locationOptions = {
-    enableHighAccuracy: true,
-    timeout: 10 * 1000,
-    maximumAge: 10 * 1000
-  }
+  <head>
+    <title>map-chat</title>
+    <style type="text/css">
+    html,
+    body,
+    #map {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
 
-  navigator.geolocation.getCurrentPosition(function (position) {
-    loc = new google.maps.LatLng(position.coords.latitude, position.coords.longtitude)
-  }, function (err) {
-    alert('We could not get your location :<')
-    console.error('Error (' + err.code + '): ' + err.message)
-  }, locationOptions)
-  navigator.geolocation.watchPosition(function (position) {
-    loc = new google.maps.LatLng(position.coords.latitude, position.coords.longtitude)
-  }, function (err) {
-    alert('We could not get your location :<')
-    console.error('Error (' + err.code + '): ' + err.message)
-  }, locationOptions)
-
-  var socket = io()
-  socket.on('message', function (message) {
-    console.log(message)
-  })
-
-  function message (msg) {
-    socket.emit('message', {
-      message: msg,
-      lat: loc.lat(),
-      lng: loc.lng()
+    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+    var map
+    map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: 0, lng: 0},
+      zoom: 2,
+      disableDefaultUI: true,
+      zoomControl: true
     })
-  }
-  </script>
+    var loc
+    var locationOptions = {
+      enableHighAccuracy: true,
+      timeout: 10 * 1000,
+      maximumAge: 10 * 1000
+    }
+    var markers = []
+
+    var socket = io()
+    socket.on('message', function (message) {
+      if(markers[message.sessionID]) {
+        var data = markers[message.sessionID]
+        data.infoWindow.setContent(message.message)
+        data.infoWindow.setPosition(message.location)
+        data.infoWindow.open(map, data.marker)
+        data.marker.setPosition(message.location)
+      }
+    })
+
+    socket.on('greet', function (message) {
+      var marker = new google.maps.Marker({
+        position: message.location,
+        map: map,
+        title: message.sessionID,
+        icon: 'images/dot.png'
+      })
+
+      var infoWindow = new google.maps.InfoWindow({
+        content: null,
+        maxWidth: 400,
+        disableAutoPan: true
+      })
+
+      markers[message.sessionID] = {
+        marker: marker,
+        infoWindow: infoWindow
+      }
+    })
+
+    socket.on('leave', function (message) {
+      if(markers[message.sessionID]) {
+        var data = markers[message.sessionID]
+        data.marker.setMap(null)
+        data.infoWindow.setMap(null)
+        delete markers[message.sessionID]
+      }
+    })
+
+    navigator.geolocation.getCurrentPosition(function (position) {
+      loc = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      }
+
+      socket.emit('greet', {
+        location: loc
+      })
+    }, function (err) {
+      alert('We could not get your location :<')
+      console.error('Error (' + err.code + '): ' + err.message)
+    }, locationOptions)
+    navigator.geolocation.watchPosition(function (position) {
+      loc = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      }
+    }, function (err) {
+      alert('We could not get your location :<')
+      console.error('Error (' + err.code + '): ' + err.message)
+    }, locationOptions)
+
+    function message (msg) {
+      socket.emit('message', {
+        message: msg,
+        location: loc
+      })
+    }
+    </script>
+  </body>
 </html>

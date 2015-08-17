@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&language=en"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+  var loc
+  var locationOptions = {
+    enableHighAccuracy: true,
+    timeout: 10 * 1000,
+    maximumAge: 10 * 1000
+  }
+
+  navigator.geolocation.getCurrentPosition(function (position) {
+    loc = new google.maps.LatLng(position.coords.latitude, position.coords.longtitude)
+  }, function (err) {
+    alert('We could not get your location :<')
+    console.error('Error (' + err.code + '): ' + err.message)
+  }, locationOptions)
+  navigator.geolocation.watchPosition(function (position) {
+    loc = new google.maps.LatLng(position.coords.latitude, position.coords.longtitude)
+  }, function (err) {
+    alert('We could not get your location :<')
+    console.error('Error (' + err.code + '): ' + err.message)
+  }, locationOptions)
+
+  var socket = io()
+  socket.on('message', function (message) {
+    console.log(message)
+  })
+
+  function message (msg) {
+    socket.emit('message', {
+      message: msg,
+      lat: loc.lat(),
+      lng: loc.lng()
+    })
+  }
+  </script>
+</html>

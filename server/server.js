@@ -35,7 +35,7 @@ io.on('connection', function (socket) {
 
 app.use('/', express.static(__dirname + '/../client'))
 
-http.listen(3000, function () {
+http.listen(process.env.PORT, function () {
   console.log('listening on *:3000')
 })
 

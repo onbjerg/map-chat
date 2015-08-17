@@ -20,6 +20,7 @@
   "dependencies": {
     "emoji-emoticon-to-unicode": "^0.2.0",
     "express": "^4.13.3",
+    "htmlspecialchars": "^1.0.5",
     "socket.io": "^1.3.6",
     "underscore": "^1.8.3"
   }

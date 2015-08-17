@@ -4,6 +4,7 @@ var http = require('http').Server(app)
 var io = require('socket.io')(http)
 var _ = require('underscore')
 var emojis = require('./emojis')
+var htmlspecialchars = require('htmlspecialchars')
 
 io.on('connection', function (socket) {
   console.log('a user connected')
@@ -23,7 +24,7 @@ io.on('connection', function (socket) {
   })
 
   socket.on('message', function (message) {
-    message.message = emojis(message.message)
+    message.message = htmlspecialchars(emojis(message.message))
 
     console.log('message from ' + this.id + ': ', message)
     io.emit('message', _.extend(message, {

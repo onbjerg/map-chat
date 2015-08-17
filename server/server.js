@@ -6,11 +6,15 @@ var _ = require('underscore')
 var emojis = require('./emojis')
 var htmlspecialchars = require('htmlspecialchars')
 
+var positions = {}
 io.on('connection', function (socket) {
   console.log('a user connected')
 
+  socket.emit('welcome', positions)
+
   socket.on('greet', function (loc) {
     console.log('a user greeted the server')
+    positions[this.id] = loc
     io.emit('greet', _.extend(loc, {
       sessionID: this.id
     }))
@@ -21,6 +25,7 @@ io.on('connection', function (socket) {
     io.emit('leave', {
       sessionID: this.id
     })
+    delete positions[this.id]
   })
 
   socket.on('message', function (message) {
@@ -35,9 +40,8 @@ io.on('connection', function (socket) {
 
 app.use('/', express.static(__dirname + '/../client'))
 
-var port = process.env.PORT || 3000
-http.listen(port, function () {
-  console.log('listening on *:' + port)
+http.listen(process.env.PORT, function () {
+  console.log('listening on *:3000')
 })
 
 var stdin = process.openStdin()

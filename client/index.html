@@ -62,11 +62,11 @@
       }
     })
 
-    socket.on('greet', function (message) {
+    function setupClient(id, loc) {
       var marker = new google.maps.Marker({
-        position: message.location,
+        position: loc,
         map: map,
-        title: message.sessionID,
+        title: id,
         icon: 'images/dot.png'
       })
 
@@ -76,10 +76,20 @@
         disableAutoPan: true
       })
 
-      markers[message.sessionID] = {
+      markers[id] = {
         marker: marker,
         infoWindow: infoWindow
       }
+    }
+
+    socket.on('welcome', function (clients) {
+      for (var id in clients) {
+        setupClient(id, clients[id].location)
+      }
+    })
+
+    socket.on('greet', function (message) {
+      setupClient(message.sessionID, message.location)
     })
 
     socket.on('leave', function (message) {
